@@ -1,0 +1,30 @@
+
+%%%%%%%%%%%%%%%%%%% DECODAGE (de-HUFFMAN , inv-RLC , de-ZIGZAG  , IDCT %%%%%%%%%%%%%%%%%%%%%%%%%
+Im_inv = ones(256,256);
+[ligne,colone]=size(ImgTr);
+count1 = 0;
+count2 = 1;
+for i=1:L:ligne    % balayage de haut en bas 
+    count1 = count1 + 1;
+    for j=1:L:colone   % balayage de gauche à droite 
+            comp = table_enco{count1,count2};
+            dict = table_dict{count1,count2};
+            dsig = huffmandeco(comp,dict);
+            x = irle(dsig); %RLC_inverse
+            out=Dezigzag(x,8,8);         %de_Zigzag
+            Im_inv(i:i+L-1,j:j+L-1) = out;
+            count2 = count2 + 1;
+            if count2 > 32
+                count2 = 1;
+            end 
+    end
+end
+[ImgRec] = decoder(Im_inv,L,Q);
+figure(3), imshow(ImgRec, [0 255]);      %affichage de l'image compressée  
+%%  
+[D] = Distimage(I,ImgRec);               %difference (image original - image compressé)
+figure(4), imshow(D, [0 255]), title('Diiiference entre images (originale et compréssée');
+[H] = histogramme(ImgTr,8);
+figure(5), plot(H), title('histogramme de la matrice des coefficients'); 
+%%
+error = immse(I,ImgRec);                 %MSE ( mean squarred error == erreur moyenne quadratique
